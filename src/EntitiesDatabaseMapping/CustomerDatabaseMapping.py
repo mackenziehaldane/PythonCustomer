@@ -6,8 +6,8 @@ from src.DataSource.DBExecuteSQL import DBExecuteSQL
 from src.DataSource.DataSourceConstants import *
 from src.Utilities.ErrorLogging import ErrorLogging
 
-class CustomerDatabaseMapping:
 
+class CustomerDatabaseMapping:
     errorLogging = ErrorLogging()
     customerTableName = Customer.dataSourceName
 
@@ -16,7 +16,7 @@ class CustomerDatabaseMapping:
     lastNamePosition = 2
     passwordPosition = 3
 
-    dataSourceFields = ["emailAddress","firstName","lastName","password"]
+    dataSourceFields = ["emailAddress", "firstName", "lastName", "password"]
 
     dbSetup = DBSetup()
     dataSource = DatabaseGetData()
@@ -35,33 +35,36 @@ class CustomerDatabaseMapping:
 
     def getCustomerDataFromFile(self):
         customerFileReader = ReadCSVFile()
-        customerData = customerFileReader.getFileData(ENTITIES_FOLDER,self.customerTableName + ".csv")
+        customerData = customerFileReader.getFileData(ENTITIES_FOLDER, self.customerTableName + ".csv")
         header = customerData.pop(0)
         if not self.validateDataFromFileHeader(header):
-            self.errorLogging.writeToLog("CustomerDatabaseMapping.getCustomerDataFromFile","An error occurred:" + sqlExp.args[0])
+            self.errorLogging.writeToLog("CustomerDatabaseMapping.getCustomerDataFromFile",
+                                         "An error occurred:" + sqlExp.args[0])
         return customerData
 
     def customerCreateTable(self):
         try:
             self.dbSetup.dropTable(self.customerTableName)
-            self.dbSetup.createTable(self.customerTableName,self.dataSourceFields)
+            self.dbSetup.createTable(self.customerTableName, self.dataSourceFields)
         except:
-            self.errorLogging.writeToLog("CustomerDatabaseMapping.customerCreateTable","An error occurred:" + sys.exc_info()[0])
+            self.errorLogging.writeToLog("CustomerDatabaseMapping.customerCreateTable",
+                                         "An error occurred:" + sys.exc_info()[0])
 
     def customerPopulateDataSource(self):
-        customerInsertSql = self.dbSetup.generateInsertStatement(self.customerTableName,self.dataSourceFields)
+        customerInsertSql = self.dbSetup.generateInsertStatement(self.customerTableName, self.dataSourceFields)
         customerData = self.getCustomerDataFromFile()
         try:
-            self.dbSetup.populateEntity(customerInsertSql,customerData)
+            self.dbSetup.populateEntity(customerInsertSql, customerData)
         except:
-            self.errorLogging.writeToLog("CustomerDatabaseMapping.customerCreateTable","An error occurred:" + sys.exc_info()[0])
+            self.errorLogging.writeToLog("CustomerDatabaseMapping.customerCreateTable",
+                                         "An error occurred:" + sys.exc_info()[0])
 
     def customerDataBaseSetup(self):
         self.customerCreateTable()
         self.customerPopulateDataSource()
 
     def getCustomerData(self):
-        return self.dataSource.getData(self.customerTableName,self.dataSourceFields)
+        return self.dataSource.getData(self.customerTableName, self.dataSourceFields)
 
     def createAllCustomers(self):
         allCustomers = []
@@ -71,15 +74,17 @@ class CustomerDatabaseMapping:
             allCustomers.append(customer)
         return allCustomers
 
+
 def main():
     dbExecuteSQL = DBExecuteSQL()
-    #dbExecuteSQL.switchToInMemory()
+    # dbExecuteSQL.switchToInMemory()
     customerDatabaseMapping = CustomerDatabaseMapping()
     customerDatabaseMapping.customerDataBaseSetup()
     print(customerDatabaseMapping.getCustomerData())
     allCustomers = customerDatabaseMapping.createAllCustomers()
     print(len(allCustomers))
     print(dbExecuteSQL.getListOfTables())
+
 
 if __name__ == "__main__":
     main()
